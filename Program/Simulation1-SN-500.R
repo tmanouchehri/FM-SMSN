@@ -5,7 +5,7 @@ ptm<-proc.time()
 #==========================import function=====================
 WD.PATH = paste(getwd(),"/Functions", sep = "")
 
-source(paste(WD.PATH, '/FMSMSN-ST.r', sep = ""))
+source(paste(WD.PATH, '/FMSMSN-SN.r', sep = ""))
 
 #==========================parameters==========================
 #Moderately Components
@@ -45,59 +45,59 @@ ns=n*20/100
 SS=matrix(rep(0,R*13),nrow=13)
 
 #==========================histogram==========================
-Data=garchfst(n,ns)
-zst=Data[[2]][(ns+1):(n+ns)]
-xfitst<-seq(min(zst),max(zst),length=400)
-yfitst<-d.mixedST(xfitst, piip, mup, sigma2p, shapep, nup)
+Data=garchfsn(n,ns)
+zsn=Data[[2]][(ns+1):(n+ns)]
+xfitsn<-seq(min(zsn),max(zsn),length=400)
+yfitsn<-d.mixedSN(xfitsn, piip, mup, sigma2p, shapep)
 
 X11()
-hist(zst, breaks = seq(min(zst),max(zst),length=70), freq = FALSE, main = "FMSMSN-ST", xlab = "Z")
-lines(xfitst,yfitst , lwd = 2)
+hist(zsn, breaks = seq(min(zsn),max(zsn),length=70), freq = FALSE, main = "FMSMSN-SN", xlab = "Z")
+lines(xfitsn,yfitsn , lwd = 2)
 
 #==========================program==========================
 for(r in 1:R){
-  Data=garchfst(n,ns)
+  Data=garchfsn(n,ns)
   x=Data[[1]][(ns+1):(n+ns)]
   x0=Data[[1]][ns]
   n=len=length(x)
   HH=rep(0,0)
   for(i in 1:n) HH[i]=x[i]^2
   H0=HH[1]
-  resutfmsn_st<-estst(x,x0,2,10^(-5),100)
-  if(resutfmsn_st$pii[1]>resutfmsn_st$pii[2]){
-    SS[1,r]=resutfmsn_st$mu[1]
-    SS[2,r]=resutfmsn_st$mu[2]
-    SS[3,r]=resutfmsn_st$sigma2[1]
-    SS[4,r]=resutfmsn_st$sigma2[2]
-    SS[5,r]=resutfmsn_st$shape[1]
-    SS[6,r]=resutfmsn_st$shape[2]
-    SS[7,r]=resutfmsn_st$mu0
-    SS[8,r]=resutfmsn_st$alpha1
-    SS[9,r]=resutfmsn_st$beta1
-    SS[10,r]=resutfmsn_st$pii[1]
-    SS[11,r]=resutfmsn_st$pii[2]
-    SS[12,r]=resutfmsn_st$nu  
-    SS[13,r]=resutfmsn_st$w  
+  resutfmsn_sn<-estsn(x,x0,2,10^(-5),100)
+  if(resutfmsn_sn$pii[1]>resutfmsn_sn$pii[2]){
+    SS[1,r]=resutfmsn_sn$mu[1]
+    SS[2,r]=resutfmsn_sn$mu[2]
+    SS[3,r]=resutfmsn_sn$sigma2[1]
+    SS[4,r]=resutfmsn_sn$sigma2[2]
+    SS[5,r]=resutfmsn_sn$shape[1]
+    SS[6,r]=resutfmsn_sn$shape[2]
+    SS[7,r]=resutfmsn_sn$mu0
+    SS[8,r]=resutfmsn_sn$alpha1
+    SS[9,r]=resutfmsn_sn$beta1
+    SS[10,r]=resutfmsn_sn$pii[1]
+    SS[11,r]=resutfmsn_sn$pii[2]
+    SS[12,r]=resutfmsn_sn$nu  
+    SS[13,r]=resutfmsn_sn$w  
   }else
   {
-    SS[1,r]=resutfmsn_st$mu[2]
-    SS[2,r]=resutfmsn_st$mu[1]
-    SS[3,r]=resutfmsn_st$sigma2[2]
-    SS[4,r]=resutfmsn_st$sigma2[1]
-    SS[5,r]=resutfmsn_st$shape[2]
-    SS[6,r]=resutfmsn_st$shape[1]
-    SS[7,r]=resutfmsn_st$mu0
-    SS[8,r]=resutfmsn_st$alpha1
-    SS[9,r]=resutfmsn_st$beta1
-    SS[10,r]=resutfmsn_st$pii[2]
-    SS[11,r]=resutfmsn_st$pii[1]
-    SS[12,r]=resutfmsn_st$nu  
-    SS[13,r]=resutfmsn_st$w 
+    SS[1,r]=resutfmsn_sn$mu[2]
+    SS[2,r]=resutfmsn_sn$mu[1]
+    SS[3,r]=resutfmsn_sn$sigma2[2]
+    SS[4,r]=resutfmsn_sn$sigma2[1]
+    SS[5,r]=resutfmsn_sn$shape[2]
+    SS[6,r]=resutfmsn_sn$shape[1]
+    SS[7,r]=resutfmsn_sn$mu0
+    SS[8,r]=resutfmsn_sn$alpha1
+    SS[9,r]=resutfmsn_sn$beta1
+    SS[10,r]=resutfmsn_sn$pii[2]
+    SS[11,r]=resutfmsn_sn$pii[1]
+    SS[12,r]=resutfmsn_sn$nu  
+    SS[13,r]=resutfmsn_sn$w 
   }
 }
 
 
-write.csv(SS,"Sim1_st500.csv", sep = ",", col.names = NA,qmethod = "double")
+write.csv(SS,"Sim1_sn500.csv", sep = ",", col.names = NA,qmethod = "double")
 
 
 proc.time()-ptm
