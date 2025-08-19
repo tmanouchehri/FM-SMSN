@@ -16,67 +16,66 @@ source(paste(WD.PATH, '/FMSMSN-N.r', sep = ""))
 library(readxl)
 mydata <-  read_excel("program/AAPL.xlsx")
 head(mydata)
-DJ <- mydata[[6]]
-DJ<-na.omit(DJ)
-DJ1=as.numeric(DJ)
-dados <- DJ1
-rend.da1 <- diff(log(dados))
-n<-length(rend.da1)
-AA=2771
-BB=3674
-DJ=DJ1[AA:BB]
-rend.da=rend.da1[(AA-1):(BB-1)]
-n<-length(rend.da)
-
-
+DJ <- data$Adj.Close
+date <- as.Date(mydata[[1]], format = "%m/%d/%Y")
+date <- date[!is.na(mydata[[6]])]
+p=log(DJ)
+rend.da=10^2*(p[2:1130]-p[1:1129])
+date_rend <- date[-1]
+Ntrain <- 904
+Ntest <- 226
+split_date <- date[Ntrain]
 library(xts)
 date <- mydata[[1]][AA:BB]
 td <- as.Date(date, format="%Y-%m-%d")
 Price_DJ <- xts(x=DJ, order.by=td)
 Price_rend.da <- xts(x=rend.da, order.by=td)
+df_price <- data.frame(Date = date, Price = DJ)
+df_rend <- data.frame(Date = date_rend, Return = rend.da)
 
 
-x <-  as.Date(date, format="%Y-%m-%d")
-y <- DJ
-X11()
-plot(x,y,xlab = "Time", ylab = "Adjust Closure Prices", main = "Apple Inc.", type = "p")
-abline(v=as.Date("2021-11-11"),col="blue")
+p1 <- ggplot(df_price, aes(x = Date, y = Price)) +
+  geom_line(color = "black") +
+  geom_vline(xintercept = as.numeric(split_date), color = "blue", linetype = "dashed", linewidth = 1) +
+  labs(x = "Date", y = "Adjusted Close Price", title = "Apple Stock Price") +
+  theme_minimal(base_size = 12) +
+  scale_x_date(labels = date_format("%Y-%m"), date_breaks = "6 months") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 
-x <-  as.Date(date, format="%Y-%m-%d")
-y <- rend.da
-X11()
-plot(x,y, xlab = "Time", ylab = "Returns", main = "Daily Returns of Apple Inc.", type = "l")
-abline(v=as.Date("2021-11-11"),col="blue")
+p2 <- ggplot(df_rend, aes(x = Date, y = Return)) +
+  geom_line(color = "darkgreen") +
+  geom_vline(xintercept = as.numeric(split_date), color = "blue", linetype = "dashed", linewidth = 1) +
+  labs(x = "Date", y = "Log Return", title = "Daily Log Returns") +
+  theme_minimal(base_size = 12) +
+  scale_x_date(labels = date_format("%Y-%m"), date_breaks = "6 months") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
+grid.arrange(p1, p2, ncol = 2)
 
-X11()
 op<-par(mfrow=c(3,1))
-date <- mydata[[1]][AA:BB]
-td <- as.Date(date, format="%Y-%m-%d")
+date <- mydata[[1]]
+td <- as.Date(date, format="%m/%d/%Y")
 Price_rend.da <- zoo(x=rend.da, order.by=td)
 plot(Price_rend.da, xlab = "Time", ylab = "Returns", main = "Daily Returns of Apple Inc.", type = "l")
 acf(ts(rend.da),200,main = "Daily Returns of Apple Inc.")
 pacf(ts(rend.da),200,main = "Daily Returns of Apple Inc.")
 
 
-X11()
 par(mfcol=c(2,1))
 hist(DJ, br=30, freq=F,xlab = "Adjust Closure Prices", ylab = "Frequency", main = "Apple Inc.")
 qqnorm(DJ)
 qqline(DJ)
 
 
-X11()
 par(mfcol=c(2,1))
 hist(rend.da, br=200, freq=F,xlab = "Returns" ,main="Histogram Daily Returns of Apple Inc.")
 curve(dnorm(x, mean=mean(rend.da), sd=sd(rend.da)), add=TRUE, min(rend.da), max(rend.da), col="red",lwd=2)
 qqnorm(rend.da)
 qqline(rend.da)
 
-
-x=DJ*10^2
-x0=DJ1[(AA-1)]*10^2
+x=rend.da[2:Ntrain]
+x0=rend.da[1]
 n=len=length(x)
 HH=rep(0,0)
 for(i in 1:n) HH[i]=x[i]^2
@@ -221,6 +220,7 @@ proc.time()-ptm
 end.time <- Sys.time()
 time.taken <- end.time - start.time
 time.taken  
+
 
 
 
