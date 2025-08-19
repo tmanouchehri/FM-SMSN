@@ -125,33 +125,6 @@ write.csv(PAR,"Program/realdata_parameterestimation.csv", sep = ",", col.names =
 
 
 #=================================Criteria============================
-
-res_sn1=goodsn(resutfmsn_sn1$ER,1, resutfmsn_sn1$pii, resutfmsn_sn1$mu, resutfmsn_sn1$sigma2, resutfmsn_sn1$shape, resutfmsn_sn1$nu)
-res_sn2=goodsn(resutfmsn_sn2$ER,2, resutfmsn_sn2$pii, resutfmsn_sn2$mu, resutfmsn_sn2$sigma2, resutfmsn_sn2$shape, resutfmsn_sn2$nu)
-res_sn3=goodsn(resutfmsn_sn3$ER,3, resutfmsn_sn3$pii, resutfmsn_sn3$mu, resutfmsn_sn3$sigma2, resutfmsn_sn3$shape, resutfmsn_sn3$nu)
-
-res_st1=goodst(resutfmsn_st1$ER,1, resutfmsn_st1$pii, resutfmsn_st1$mu, resutfmsn_st1$sigma2, resutfmsn_st1$shape, resutfmsn_st1$nu)
-res_st2=goodst(resutfmsn_st2$ER,2, resutfmsn_st2$pii, resutfmsn_st2$mu, resutfmsn_st2$sigma2, resutfmsn_st2$shape, resutfmsn_st2$nu)
-res_st3=goodst(resutfmsn_st3$ER,3, resutfmsn_st3$pii, resutfmsn_st3$mu, resutfmsn_st3$sigma2, resutfmsn_st3$shape, resutfmsn_st3$nu)
-
-
-res_ss1=goodss(resutfmsn_ss1$ER,1, resutfmsn_ss1$pii, resutfmsn_ss1$mu, resutfmsn_ss1$sigma2, resutfmsn_ss1$shape, resutfmsn_ss1$nu)
-res_ss2=goodss(resutfmsn_ss2$ER,2, resutfmsn_ss2$pii, resutfmsn_ss2$mu, resutfmsn_ss2$sigma2, resutfmsn_ss2$shape, resutfmsn_ss2$nu)
-res_ss3=goodss(resutfmsn_ss3$ER,3, resutfmsn_ss3$pii, resutfmsn_ss3$mu, resutfmsn_ss3$sigma2, resutfmsn_ss3$shape, resutfmsn_ss3$nu)
-
-res_scn1=goodscn(resutfmsn_scn1$ER,1, resutfmsn_scn1$pii, resutfmsn_scn1$mu, resutfmsn_scn1$sigma2, resutfmsn_scn1$shape, resutfmsn_scn1$nu)
-res_scn2=goodscn(resutfmsn_scn2$ER,2, resutfmsn_scn2$pii, resutfmsn_scn2$mu, resutfmsn_scn2$sigma2, resutfmsn_scn2$shape, resutfmsn_scn2$nu)
-res_scn3=goodscn(resutfmsn_scn3$ER,3, resutfmsn_scn3$pii, resutfmsn_scn3$mu, resutfmsn_scn3$sigma2, resutfmsn_scn3$shape, resutfmsn_scn3$nu)
-
-res_n1=goodsn(resutfmsn_n1$ER,1, resutfmsn_n1$pii, resutfmsn_n1$mu, resutfmsn_n1$sigma2, resutfmsn_n1$shape, resutfmsn_n1$nu)
-res_n2=goodsn(resutfmsn_n2$ER,2, resutfmsn_n2$pii, resutfmsn_n2$mu, resutfmsn_n2$sigma2, resutfmsn_n2$shape, resutfmsn_n2$nu)
-res_n3=goodsn(resutfmsn_n3$ER,3, resutfmsn_n3$pii, resutfmsn_n3$mu, resutfmsn_n3$sigma2, resutfmsn_n3$shape, resutfmsn_n3$nu)
-
-res_t1=goodst(resutfmsn_t1$ER,1, resutfmsn_t1$pii, resutfmsn_t1$mu, resutfmsn_t1$sigma2, resutfmsn_t1$shape, resutfmsn_t1$nu)
-res_t2=goodst(resutfmsn_t2$ER,2, resutfmsn_t2$pii, resutfmsn_t2$mu, resutfmsn_t2$sigma2, resutfmsn_t2$shape, resutfmsn_t2$nu)
-res_t3=goodst(resutfmsn_t3$ER,3, resutfmsn_t3$pii, resutfmsn_t3$mu, resutfmsn_t3$sigma2, resutfmsn_t3$shape, resutfmsn_t3$nu)
-
-#If the parameter estimation information is stored in a file.
 PAR=as.matrix(read.csv("Program/realdata_parameter_estimation.csv"),ncol=18)[,-1]
 
 a1=1;a2=2;a3=3
@@ -188,10 +161,6 @@ SS=rbind(res_sn1,res_sn2,res_sn3,res_st1,res_st2,res_st3,res_ss1,res_ss2,res_ss3
 
 write.csv(SS,"Program/Criteria.csv", sep = ",", col.names = NA,qmethod = "double")
 
-#===========================Chose best model========================
-which.max(SS[,1])
-which.min(SS[,2])
-
 #=======================residuals plot=================
 zz <- read_excel("Program/pre1st2$zt.xlsx")
 zz=zz[[2]]
@@ -220,6 +189,7 @@ proc.time()-ptm
 end.time <- Sys.time()
 time.taken <- end.time - start.time
 time.taken  
+
 
 
 
