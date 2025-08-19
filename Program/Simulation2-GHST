@@ -1,0 +1,137 @@
+rm(list=ls())
+start.time <- Sys.time()
+ptm<-proc.time()
+#==========================import function=====================
+WD.PATH = paste(getwd(),"/Functions", sep = "")
+source(paste(WD.PATH, '/FMSMSN-ST.r', sep = ""))
+source(paste(WD.PATH, '/FMSMSN-T.r', sep = ""))
+source(paste(WD.PATH, '/FMSMSN-SN.r', sep = ""))
+source(paste(WD.PATH, '/FMSMSN-N.r', sep = ""))
+#==========================parameters==========================
+mu0p=0.05
+alphap=0.08
+betap=0.9
+wp=0.01
+mup <- -1
+sigma2p <- 2
+lambdap <- -2
+deltap=lambdap/sqrt(lambdap^2+1)
+nup = 4
+argp = c(mup, sigma2p, lambdap, nup)
+Deltap=sqrt(sigma2p)*deltap
+Rop=sigma2p-Deltap^2
+must<-function(m,s,d,n)  m+sqrt(n)*pi*(gamma((n-1)/2)/gamma(n/2))*s*d
+ssst<-function(m,s,d,n)  ((n/(n-2))-(n/pi)*(gamma((n-1)/2)/gamma((n)/2))^2*d^2)*s^2
+must(mup,sqrt(sigma2p),deltap,nup)
+ssst(mup,sqrt(sigma2p),deltap,nup)
+#==========================n=500==========================
+R=500
+n=1000
+ns=n*20/100
+SS=matrix(0,nrow=R,ncol=60)
+#==========================histogram==========================
+garchghst= function(n,ns){
+  mix.sample = function(n, param, family =  c("BS", "Lindly", "gig", "Exp"))
+  {
+    if(family == "BS") {
+      alpha = param[1]
+      U = rnorm(n)
+      out = (alpha * U + sqrt(( alpha * U)^2 + 4))^2 / 4
+    }
+    
+    if(family == "Lindly") {
+      alpha = param[1]
+      out = VGAM::rlind(n, alpha)
+    }
+    
+    if(family == "gig") {
+      kappa = param[1]
+      chi = param[2]
+      psi = param[3]
+      out = GIGrvg::rgig(n, lambda = kappa, chi = chi, psi = psi)
+    }
+    
+    if(family == "Exp") {
+      out = rexp(n, 0.5)
+    }
+    return(out)
+  }
+  
+  r.NMV.family = function(n, mu,sigma2, lambda, theta,
+                          family = c("normal", "SL", "GHST", 
+                                     "VG", "NMVBS", "NMVL",
+                                     "NIG", "GH"),
+                          SN = FALSE){
+    z = rnorm(n, mean = mu, sd = sqrt(sigma2))
+    if(family == "SL") W = rexp(n, 0.5)
+    if(family == "GHST") W = mix.sample(n, c(-theta/2, theta, 0), family =  "gig")
+    if(family == "VG")  W = mix.sample(n, c(theta[1],0, theta[2]), family =  "gig")
+    if(family == "NIG") W = mix.sample(n, c(-0.5, 1, theta^2), family =  "gig")
+    if(family == "GH")  W = mix.sample(n, c(theta,theta,theta), family =  "gig")
+    if(family == "NMVBS") W = mix.sample(n, theta, family =  "BS")
+    if(family == "NMVL") W = mix.sample(n, theta, family =  "Lindly")
+    if(family == "normal") W = 1; lambda = 0
+    out = lambda * W + sqrt(W) * z
+    if(SN){
+      z = sn :: rsn(n, xi = mu, omega = 1, alpha = 1, tau = 0)
+      out = lambda * W + sqrt(W) * z
+    }
+    return(out)
+  }
+  ht=yt=rep(0,0)
+  zt <-r.NMV.family((n+ns), mup,sigma2p, lambdap, nup,family = "GHST",SN = FALSE)
+  ht[1] = wp/(1-alphap-betap)
+  yt[1] = wp+zt[1]*sqrt(ht[1]) 
+  for(i in 2:(n+ns)){
+    ht[i]= mu0p+alphap*(yt[i-1]-wp)^2+betap*ht[i-1]
+    yt[i] = wp+zt[i]*sqrt(ht[i])
+  }
+  list(yt,zt,ht)
+}
+Data=garchghst(n,ns)
+zst=Data[[2]][(ns+1):(n+ns)]
+xfitst<-seq(min(zst),max(zst),length=400)
+yfitst<-dnorm(xfitst, mup, sigma2p) 
+#==========================program==========================
+for(r in 1:R){
+  Data=garchghst(n,ns)
+  x=Data[[1]][(ns+1):(n+ns)]
+  HHH=Data[[3]][(ns+1):(n+ns)]
+  x0=Data[[1]][ns]
+  n=len=length(x)
+  HH=rep(0,0)
+  for(i in 1:n) HH[i]=x[i]^2
+  H0=HH[1]
+  resutfmsn_st1<-try({estst(x,x0,1,10^(-5),100)}, silent = TRUE)
+  resutfmsn_st2<-try({estst(x,x0,2,10^(-5),100)}, silent = TRUE)
+  resutfmsn_st3<-try({estst(x,x0,3,10^(-5),100)}, silent = TRUE)
+  resutfmsn_sn1<-try({estsn(x,x0,1,10^(-5),100)}, silent = TRUE)
+  resutfmsn_sn2<-try({estsn(x,x0,2,10^(-5),100)}, silent = TRUE)
+  resutfmsn_sn3<-try({estsn(x,x0,3,10^(-5),100)}, silent = TRUE)
+  resutfmsn_t1<-try({estt(x,x0,1,10^(-5),100)}, silent = TRUE)
+  resutfmsn_t2<-try({estt(x,x0,2,10^(-5),100)}, silent = TRUE)
+  resutfmsn_t3<-try({estt(x,x0,3,10^(-5),100)}, silent = TRUE)
+  resutfmsn_n1<-try({estn(x,x0,1,10^(-5),100)}, silent = TRUE)
+  resutfmsn_n2<-try({estn(x,x0,2,10^(-5),100)}, silent = TRUE)
+  resutfmsn_n3<-try({estn(x,x0,3,10^(-5),100)}, silent = TRUE)
+  
+  SS[r,]=try({c(c(resutfmsn_st1$lk,resutfmsn_st1$aic,resutfmsn_st1$bic,(mean(abs((resutfmsn_st1$Ht - HHH)/HHH))),sqrt(mean((resutfmsn_st1$Ht - HHH)^2))/abs(abs(mean(HHH)))),
+           c(resutfmsn_st2$lk,resutfmsn_st2$aic,resutfmsn_st2$bic,(mean(abs((resutfmsn_st2$Ht - HHH)/HHH))),sqrt(mean((resutfmsn_st2$Ht - HHH)^2))/abs(mean(HHH))),
+           c(resutfmsn_st3$lk,resutfmsn_st3$aic,resutfmsn_st3$bic,(mean(abs((resutfmsn_st3$Ht - HHH)/HHH))),sqrt(mean((resutfmsn_st3$Ht - HHH)^2))/abs(mean(HHH))),
+           c(resutfmsn_t1$lk,resutfmsn_t1$aic,resutfmsn_t1$bic,(mean(abs((resutfmsn_t1$Ht - HHH)/HHH))),sqrt(mean((resutfmsn_t1$Ht - HHH)^2))/abs(mean(HHH))),
+           c(resutfmsn_t2$lk,resutfmsn_t2$aic,resutfmsn_t2$bic,(mean(abs((resutfmsn_t2$Ht - HHH)/HHH))),sqrt(mean((resutfmsn_t2$Ht- HHH)^2))/abs(mean(HHH))),
+           c(resutfmsn_t3$lk,resutfmsn_t3$aic,resutfmsn_t3$bic,(mean(abs((resutfmsn_t3$Ht - HHH)/HHH))),sqrt(mean((resutfmsn_t3$Ht - HHH)^2))/abs(mean(HHH))),
+           c(resutfmsn_sn1$lk,resutfmsn_sn1$aic,resutfmsn_sn1$bic,(mean(abs((resutfmsn_sn1$Ht - HHH)/HHH))),sqrt(mean((resutfmsn_sn1$Ht - HHH)^2))/abs(mean(HHH))),
+           c(resutfmsn_sn2$lk,resutfmsn_sn2$aic,resutfmsn_sn2$bic,(mean(abs((resutfmsn_sn2$Ht - HHH)/HHH))),sqrt(mean((resutfmsn_sn2$Ht - HHH)^2))/abs(mean(HHH))),
+           c(resutfmsn_sn3$lk,resutfmsn_sn3$aic,resutfmsn_sn3$bic,(mean(abs((resutfmsn_sn3$Ht - HHH)/HHH))),sqrt(mean((resutfmsn_sn3$Ht - HHH)^2))/abs(mean(HHH))),
+           c(resutfmsn_n1$lk,resutfmsn_n1$aic,resutfmsn_n1$bic,(mean(abs((resutfmsn_n1$Ht - HHH)/HHH))),sqrt(mean((resutfmsn_n1$Ht- HHH)^2))/abs(mean(HHH))),
+           c(resutfmsn_n2$lk,resutfmsn_n2$aic,resutfmsn_n2$bic,(mean(abs((resutfmsn_n2$Ht - HHH)/HHH))),sqrt(mean((resutfmsn_n2$Ht- HHH)^2))/abs(mean(HHH))),
+           c(resutfmsn_n3$lk,resutfmsn_n3$aic,resutfmsn_n3$bic,(mean(abs((resutfmsn_n3$Ht- HHH)/HHH))),sqrt(mean((resutfmsn_n3$Ht - HHH)^2))/abs(mean(HHH))))}, silent = TRUE)
+  write.csv(SS,"Sim2_ghst.csv", sep = ",", col.names = NA,qmethod = "double")
+  print(r)
+  }
+
+proc.time()-ptm
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+time.taken 
